@@ -6,27 +6,38 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  cloudbase:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Install CloudBase CLI
         run: npm install -g @cloudbase/cli
 
-      - name: Deploy to Tencent CloudBase
-        run: tcb hosting deploy -e ${{ secrets.TENCENT_ENV_ID }} ./
+      - name: Configure credentials
+        env:
+          TENCENT_SECRET_ID: ${{ secrets.TENCENT_SECRET_ID }}
+          TENCENT_SECRET_KEY: ${{ secrets.TENCENT_SECRET_KEY }}
+        run: |
+          mkdir -p ~/.tcb
+          echo '{"cloud":{"access_key":"'$TENCENT_SECRET_ID'","secret_key":"'$TENCENT_SECRET_KEY'"}}' > ~/.tcb/config.json
 
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
+      - name: Deploy to Tencent CloudBase
+        env:
+          TENCENT_ENV_ID: ${{ secrets.TENCENT_ENV_ID }}
+        run: |
+          tcb hosting deploy -e $TENCENT_ENV_ID ./
+
+  vercel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./
