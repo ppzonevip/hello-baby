@@ -24,6 +24,7 @@ jobs:
           TENCENT_SECRET_KEY: ${{ secrets.TENCENT_SECRET_KEY }}
           TENCENT_ENV_ID: ${{ secrets.TENCENT_ENV_ID }}
         run: |
+          rm -rf .git
           tcb login --apiKeyId "$TENCENT_SECRET_ID" --apiKey "$TENCENT_SECRET_KEY"
           tcb hosting deploy -e "$TENCENT_ENV_ID" ./
 
